@@ -1,0 +1,59 @@
+---
+- name: Playbook for copying key to remote servers - cau 2
+  hosts: all
+  become: true
+  tasks:
+    - name: Create consultant user
+      user:
+        name: consultant
+        state: present
+        groups: wheel
+        append: yes
+        shell: /bin/bash
+
+    - name: Create supervisor user
+      user:
+        name: supervisor
+        state: present
+        groups: wheel
+        append: yes
+        shell: /bin/bash
+
+    - name: Create .ssh directory for consultant
+      file:
+        path: /home/consultant/.ssh
+        state: directory
+        owner: consultant
+        group: consultant
+        mode: '0755'
+
+    - name: Create .ssh directory for supervisor
+      file:
+        path: /home/supervisor/.ssh
+        state: directory
+        owner: supervisor
+        group: supervisor
+        mode: '0755'
+
+    - name: Copy authorized_keys for consultant
+      copy:
+        src: /home/ansible/keys/consultant/authorized_keys
+        dest: /home/consultant/.ssh/authorized_keys
+        mode: '0600'
+        owner: consultant
+        group: consultant
+
+    - name: Copy authorized_keys for supervisor
+      copy:
+        src: /home/ansible/keys/supervisor/authorized_keys
+        dest: /home/supervisor/.ssh/authorized_keys
+        mode: '0600'
+        owner: supervisor
+        group: supervisor
+
+    - name: Enable and start auditd service
+      service:
+        name: auditd
+        state: started
+        enabled: yes
+

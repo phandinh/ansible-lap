@@ -1,0 +1,39 @@
+---
+- name: Playbook for deploying website cau 3
+  hosts: all
+  become: true
+  tasks:
+    - name: Install unzip
+      dnf:
+        name: unzip
+        state: latest
+
+    - name: Install httpd (Apache HTTP Server)
+      dnf:
+        name: httpd
+        state: latest
+
+    - name: Start and enable httpd service
+      service:
+        name: httpd
+        state: started
+        enabled: yes
+
+    - name: Retrieve website from repository
+      get_url:
+        url: "https://drive.google.com/uc?id=1OGzCR0UG6qNZcOJmyuyptnR4HmUC_wjp&export=download"
+        dest: "/tmp/aquaria.zip"
+
+    - name: Install website
+      unarchive:
+        src: "/tmp/aquaria.zip"
+        dest: "/var/www/html/"
+        remote_src: yes
+
+    - name: Health check website 
+      uri:
+        url: http://127.0.0.1/aquaria/
+        method: GET
+        status_code: 200
+
+
