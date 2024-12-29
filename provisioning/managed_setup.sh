@@ -1,5 +1,11 @@
 #!/bin/bash
 
+USER_NAME="ansible"
+USER_PASSWORD="ansible123"
+SSH_KEY_PATH="/home/$USER_NAME/.ssh"
+MANAGED_HOSTS=("web1" "db1")
+
+
 # Update system
 echo "Updating the system..."
 sudo dnf update -y
@@ -11,6 +17,9 @@ sudo dnf install -y epel-release
 echo "Installing sudo và OpenSSH Server..."
 sudo dnf install -y sudo openssh-server
 
+echo "Installing sshpass package"
+sudo dnf install -y sshpass
+
 # Modify /etc/hosts
 echo "Configuring /etc/hosts..."
 sudo bash -c 'cat <<EOL >> /etc/hosts
@@ -21,20 +30,20 @@ EOL'
 
 # Config sudo passwordless for user ansible
 echo "Creating user 'ansible' if it does not exist..."
-if ! id -u ansible >/dev/null 2>&1; then
-    sudo useradd ansible
-    echo "ansible:ansible123" | sudo chpasswd
-    sudo usermod -aG wheel ansible
+if ! id -u $USER_NAME >/dev/null 2>&1; then
+    sudo useradd $USER_NAME
+    echo "$USER_NAME:$USER_PASSWORD" | sudo chpasswd
+    sudo usermod -aG wheel $USER_NAME
 fi
 
 # Config sudo passwordless for user ansible
 echo "Configuring passwordless sudo for user 'ansible'..."
-echo "ansible ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/ansible
+sudo bash -c "echo '$USER_NAME ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/$USER_NAME"
 
 # Create .ssh for user ansible
 echo "Creating .ssh directory for user 'ansible'..."
-sudo -u ansible mkdir -p /home/ansible/.ssh
-sudo chmod 700 /home/ansible/.ssh
+sudo -u  $USER_NAME mkdir -p $SSH_KEY_PATH
+sudo chmod 700 $SSH_KEY_PATH
 
 
 
@@ -43,12 +52,6 @@ echo "Configuring SSH settings..."
 sudo sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
 sudo sed -i 's/^PasswordAuthentication no/PasswordAuthentication yes/' /etc/ssh/sshd_config
 sudo sed -i 's/^#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config
-
-if [ $(hostname) != 'controller' ]; then
-sshpass -p ansible123 ssh ansible@controller
-sshpass -p ansible123 ssh-copy-id -i ~/.ssh/id_rsa.pub ansible@web1
-sshpass -p ansible123 ssh-copy-id -i ~/.ssh/id_rsa.pub ansible@db1
-fi
 
 # Restart SSH
 echo "Restarting SSH service..."
