@@ -40,9 +40,5 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Provisioning by shell script
     db1.vm.provision "shell", path: "provisioning/managed_setup.sh"
   end
-
-  # Copy public key from controller to remote
-  config.vm.provision "shell", inline: <<-SHELL
-	echo "Copy public key from controller to remote"
-  SHELL
+  
 end

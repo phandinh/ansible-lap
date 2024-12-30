@@ -66,7 +66,7 @@ sudo sed -i 's/^#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/ss
 sudo sed -i 's/^PubkeyAuthentication no/PubkeyAuthentication yes/' /etc/ssh/sshd_config
 
 # Check if managed nodes exist or not
-echo "Đang đợi các managed nodes sẵn sàng để sao chép SSH keys..."
+echo "Check for managed nodes ready to copy SSH keys..."
 for ip in "${IP_HOSTS[@]}"; do
     echo "Check connetion to $ip..."
     if [ $"nc -z $ip $PORT_SSH" ]; then
