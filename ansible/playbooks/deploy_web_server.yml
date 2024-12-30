@@ -30,6 +30,13 @@
         dest: "/var/www/html/"
         remote_src: yes
 
+    - name: Allow http method via firewall
+      shell: |
+        firewall-cmd --permanent --add-service=http &&
+        firewall-cmd --reload
+      args:
+        executable: /bin/bash
+
     - name: Health check website 
       uri:
         url: http://127.0.0.1/aquaria/
